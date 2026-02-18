@@ -12,8 +12,9 @@ function App() {
   }
 
   const runMacro = () => {
-    console.log("nrunMacro called")
-    
+    console.log("runMacro called")
+    window.api.runMacro()
+
   }
   
 

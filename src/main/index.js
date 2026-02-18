@@ -4,7 +4,6 @@ import { electronApp, optimizer, is }         from '@electron-toolkit/utils'
 import { spawn }                              from "child_process"
 import * as fs                                from 'fs'
 
-const exePath = join(process.cwd(), 'src', 'cpp', 'createMacro.exe');
 
 function createWindow() {
   // Create the browser window.
@@ -73,37 +72,58 @@ app.on('window-all-closed', () => {
   }
 })
 
-// In this file you can include the rest of your app's specific main process
-// code. You can also put them in separate files and require them here.
-//   const spawnedChild = spawn("D:/repos/recurr-app/src/cpp/typer.exe", []);
+// createMacro executable path
+const createMacroExePath = join(process.cwd(), 'src', 'cpp', 'createMacro.exe');
 
+// Create Macro
 ipcMain.on("keystroke", () => {
   console.log("ipcMain.on('keystroke') called")
   console.log(__dirname);
 
-  const spawnedChild = spawn(exePath, []);
+  const createMacroChild = spawn(createMacroExePath, []);
 
   let data = '';
 
-  spawnedChild.stdout.on('data', (chunk) => {
+  createMacroChild.stdout.on('data', (chunk) => {
     data += chunk;
 
     console.log(chunk.toString());
   })
 
-  spawnedChild.on('error', (error) => {
+  createMacroChild.on('error', (error) => {
     console.error(error);
   })
 
 
-  spawnedChild.on('close', () => {
-    const macro = JSON.parse(data);
+  // Save macro as json
+  createMacroChild.on('close', () => {
 
+    const macro = JSON.parse(data);
     const savePath = join(__dirname, 'macro.json');
 
     fs.writeFileSync(savePath, JSON.stringify(macro, null, 2));
 
     console.log("Macro Saved");
   });
+
+});
+
+// macro executable path
+const macroExePath = join(process.cwd(), 'src', 'cpp', 'runMacro.exe');
+
+ipcMain.on("runMacro", () => {
+  console.log("ipcMain.on(\"runMacro\" called");
+  console.log(__dirname);
+
+  const runMacroChild = spawn(macroExePath, []);
+
+
+  runMacroChild.stderr.on('data', chunk => {
+    console.error('stderr:', chunk.toString());
+  })
+
+  runMacroChild.on('error', (error) => {
+    console.error(error);
+  })
 
 });

@@ -10,7 +10,7 @@
 #include <chrono>    /* clock       */
 #include <vector>    /* std::vector */
 
-using namespace std; /* cout */
+using namespace std; /* cout, endl  */
 
 /****************** PROTOTYPES ******************/
 LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam);

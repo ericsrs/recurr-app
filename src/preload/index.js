@@ -4,7 +4,8 @@ import { electronAPI } from '@electron-toolkit/preload'
 // Custom APIs for renderer
 const api = {
 
-  keystroke: (key) => ipcRenderer.send("keystroke", key)
+  keystroke: (key) => ipcRenderer.send("keystroke", key),
+  runMacro: () => ipcRenderer.send("runMacro")
 
 }
 
