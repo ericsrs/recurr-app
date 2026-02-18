@@ -1,6 +1,6 @@
 # recurr-app
 
-An Electron application with React
+A macro app allowing a user to save their keyboard and mouse input, and replay them an arbitrary amount of times.
 
 ## Recommended IDE Setup
 
