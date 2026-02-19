@@ -1,41 +1,26 @@
 [
   {
-    "vkCode": 87,
+    "vkCode": 69,
     "keyDown": 1,
     "timestamp": -1
   },
   {
-    "vkCode": 70,
+    "vkCode": 71,
     "keyDown": 1,
     "timestamp": -1
   },
   {
-    "vkCode": 65,
+    "vkCode": 83,
     "keyDown": 1,
     "timestamp": -1
   },
   {
-    "vkCode": 87,
+    "vkCode": 68,
     "keyDown": 1,
     "timestamp": -1
   },
   {
-    "vkCode": 70,
-    "keyDown": 1,
-    "timestamp": -1
-  },
-  {
-    "vkCode": 87,
-    "keyDown": 1,
-    "timestamp": -1
-  },
-  {
-    "vkCode": 65,
-    "keyDown": 1,
-    "timestamp": -1
-  },
-  {
-    "vkCode": 70,
+    "vkCode": 69,
     "keyDown": 1,
     "timestamp": -1
   }

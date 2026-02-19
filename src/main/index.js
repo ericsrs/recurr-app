@@ -4,12 +4,15 @@ import { electronApp, optimizer, is }         from '@electron-toolkit/utils'
 import { spawn }                              from "child_process"
 import * as fs                                from 'fs'
 
+const userDataPath       = app.getPath('userData');
+const createMacroExePath = join(process.cwd(), 'src', 'cpp', 'createMacro.exe'); // createMacro executable path
+const runMacroExePath    = join(process.cwd(), 'src', 'cpp', 'runMacro.exe');    // runMacro executable path
+
+const macroPath = join(userDataPath, 'macros', 'macro.json'); // macro json file path
 
 function createWindow() {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
-    width: 900,
-    height: 670,
     show: false,
     autoHideMenuBar: true,
     ...(process.platform === 'linux' ? { icon } : {}),
@@ -44,6 +47,9 @@ app.whenReady().then(() => {
   // Set app user model id for windows
   electronApp.setAppUserModelId('com.electron')
 
+  // Log user data path
+  console.log("User data path:", app.getPath('userData'));
+
   // Default open or close DevTools by F12 in development
   // and ignore CommandOrControl + R in production.
   // see https://github.com/alex8088/electron-toolkit/tree/master/packages/utils
@@ -72,8 +78,6 @@ app.on('window-all-closed', () => {
   }
 })
 
-// createMacro executable path
-const createMacroExePath = join(process.cwd(), 'src', 'cpp', 'createMacro.exe');
 
 // Create Macro
 ipcMain.on("keystroke", () => {
@@ -86,7 +90,6 @@ ipcMain.on("keystroke", () => {
 
   createMacroChild.stdout.on('data', (chunk) => {
     data += chunk;
-
     console.log(chunk.toString());
   })
 
@@ -94,29 +97,20 @@ ipcMain.on("keystroke", () => {
     console.error(error);
   })
 
-
   // Save macro as json
   createMacroChild.on('close', () => {
-
     const macro = JSON.parse(data);
-    const savePath = join(__dirname, 'macro.json');
-
-    fs.writeFileSync(savePath, JSON.stringify(macro, null, 2));
-
-    console.log("Macro Saved");
+    saveMacro(macro);
+    console.log("createMacroChild closed");
   });
 
 });
-
-// macro executable path
-const macroExePath = join(process.cwd(), 'src', 'cpp', 'runMacro.exe');
 
 ipcMain.on("runMacro", () => {
   console.log("ipcMain.on(\"runMacro\" called");
   console.log(__dirname);
 
-  const runMacroChild = spawn(macroExePath, []);
-
+  const runMacroChild = spawn(runMacroExePath, [macroPath]);
 
   runMacroChild.stderr.on('data', chunk => {
     console.error('stderr:', chunk.toString());
@@ -127,3 +121,37 @@ ipcMain.on("runMacro", () => {
   })
 
 });
+
+
+/***********************************************
+ * ----------------- FUNCTIONS -----------------
+***********************************************/
+
+/***********************************************
+ * FUNCTION: saveMacro
+ * ---------------------------------------------
+ * Saves a macro to 
+ * Windows
+ * C:\Users\YourName\AppData\Roaming\recurr-app
+ * 
+ * macOS
+ * ~/Library/Application Support/recurr-app
+ * 
+ * Linux
+ * ~/.config/recurr-app
+************************************************/
+
+function saveMacro(macro) {
+  const userDataPath = app.getPath('userData');
+  const macrosDir = join(userDataPath, 'macros');
+
+  if (!fs.existsSync(macrosDir)) {
+    fs.mkdirSync(macrosDir, { recursive: true });
+  }
+
+  const savePath = join(macrosDir, 'macro.json');
+
+  fs.writeFileSync(savePath, JSON.stringify(macro, null, 2));
+
+  console.log("Macro saved");
+}
