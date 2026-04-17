@@ -4,20 +4,128 @@ import { electronApp, optimizer, is }         from '@electron-toolkit/utils'
 import { spawn }                              from "child_process"
 import * as fs                                from 'fs'
 
+/*  FILE PATHS  */
 const userDataPath       = app.getPath('userData');
-const createMacroExePath = join(process.cwd(), 'src', 'cpp', 'createMacro.exe'); // createMacro executable path
-const runMacroExePath    = join(process.cwd(), 'src', 'cpp', 'runMacro.exe');    // runMacro executable path
 
-const macroPath = join(userDataPath, 'macros', 'macro.json'); // macro json file path
+const macroExePath = join(process.cwd(), 'src', 'cpp', 'macro_engine.exe');
+const macrosDir    = join(userDataPath, 'macros'); // macros folder path
+
+const iconPath = join(__dirname, '../../resources/Recurr-icon.png');
+const preloadPath = join(__dirname, '../preload/index.js');
+/****************/
+
+
+let hwProcess  = null;
+let buffer     = '';
+let mainWindow = null;
+
+
+/***********************************************
+ * Hardware Process
+***********************************************/
+
+function startHardwareProcess()
+{
+    hwProcess = spawn(macroExePath);
+
+    hwProcess.stdout.on('data', (chunk) => {
+        buffer += chunk;
+        const lines = buffer.split('\n');
+        buffer = lines.pop(); // hold incomplete line
+
+        for (const line of lines)
+        {
+            if (line.trim()) handleResponse(JSON.parse(line));
+        }
+    });
+
+    hwProcess.stderr.on('data', (chunk) => {
+        console.error('[C++]', chunk.toString());
+    });
+
+    hwProcess.on('close', () => {
+        console.log('Hardware process exited');
+        hwProcess = null;
+    });
+
+    hwProcess.on('error', (error) => {
+        console.error('Failed to start hardware process:', error);
+    });
+
+    console.log('Hardware process started');
+}
+
+
+function sendCommand(cmd)
+{
+    if (!hwProcess)
+    {
+        console.error('Hardware process not running');
+        return;
+    }
+
+    hwProcess.stdin.write(JSON.stringify(cmd) + '\n');
+}
+
+
+function handleResponse(msg)
+{
+    if (msg.status === 'recording')
+    {
+        console.log('Recording started');
+        mainWindow.webContents.send('recordingStarted');
+    }
+    else if (msg.status === 'stopped')
+    {
+        console.log('Recording stopped');
+
+        console.log('events received: ', msg.events);
+        console.log('events length: ', msg.events?.length);
+
+        saveMacro(msg.events);
+        mainWindow.webContents.send('macroSaved');
+    }
+    else if (msg.status === 'playback')
+    {
+        console.log('Playback complete');
+        mainWindow.webContents.send('playbackDone');
+    }
+    else if (msg.error)
+    {
+        console.error('Hardware error:', msg.error);
+        mainWindow.webContents.send('error', msg.error);
+    }
+}
+
+
+
+/***********************************************
+ * Save Macro
+***********************************************/
+
+function saveMacro(events)
+{
+    if (!fs.existsSync(macrosDir))
+        fs.mkdirSync(macrosDir, { recursive: true });
+
+    const savePath = join(macrosDir, 'macro.json');
+    fs.writeFileSync(savePath, JSON.stringify(events, null, 2));
+    console.log('Macro saved to', savePath);
+}
+
+
+
+/***********************************************
+ * Window
+***********************************************/
 
 function createWindow() {
-  // Create the browser window.
-  const mainWindow = new BrowserWindow({
+   mainWindow = new BrowserWindow({
     show: false,
     autoHideMenuBar: true,
-    ...(process.platform === 'linux' ? { icon } : {}),
+    icon: iconPath,
     webPreferences: {
-      preload: join(__dirname, '../preload/index.js'),
+      preload: preloadPath,
       sandbox: false
     }
   })
@@ -40,9 +148,12 @@ function createWindow() {
   }
 }
 
-// This method will be called when Electron has finished
-// initialization and is ready to create browser windows.
-// Some APIs can only be used after this event occurs.
+
+
+/***********************************************
+ * App
+***********************************************/
+
 app.whenReady().then(() => {
   // Set app user model id for windows
   electronApp.setAppUserModelId('com.electron')
@@ -51,107 +162,75 @@ app.whenReady().then(() => {
   console.log("User data path:", app.getPath('userData'));
 
   // Default open or close DevTools by F12 in development
-  // and ignore CommandOrControl + R in production.
-  // see https://github.com/alex8088/electron-toolkit/tree/master/packages/utils
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window)
   })
 
-  // IPC test
-  ipcMain.on('ping', () => console.log('pong'))
+  startHardwareProcess();
 
   createWindow()
 
   app.on('activate', function () {
-    // On macOS it's common to re-create a window in the app when the
-    // dock icon is clicked and there are no other windows open.
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
   })
 })
 
-// Quit when all windows are closed, except on macOS. There, it's common
-// for applications and their menu bar to stay active until the user quits
-// explicitly with Cmd + Q.
+
 app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
-    app.quit()
-  }
+    if (process.platform !== 'darwin') 
+    {
+        shutdownHardwareProcess()
+        app.quit();
+    }
 })
 
 
-// Create Macro
-ipcMain.on("keystroke", () => {
-  console.log("ipcMain.on('keystroke') called")
-  console.log(__dirname);
+// Clean up the process when the app quits
+app.on('before-quit', () => {
+    shutdownHardwareProcess()
+})
 
-  const createMacroChild = spawn(createMacroExePath, []);
 
-  let data = '';
+function shutdownHardwareProcess()
+{
+    console.log('shutdownHardwareProcess called, hwProcess:', hwProcess?.pid ?? 'null');
 
-  createMacroChild.stdout.on('data', (chunk) => {
-    data += chunk;
-    console.log(chunk.toString());
-  })
+    if (!hwProcess) return;
 
-  createMacroChild.on('error', (error) => {
-    console.error(error);
-  })
+    sendCommand({ cmd: 'exit' });
+    
+    const proc = hwProcess;
+    hwProcess = null;
 
-  // Save macro as json
-  createMacroChild.on('close', () => {
-    const macro = JSON.parse(data);
-    saveMacro(macro);
-    console.log("createMacroChild closed");
-  });
-
-});
-
-ipcMain.on("runMacro", () => {
-  console.log("ipcMain.on(\"runMacro\" called");
-  console.log(__dirname);
-
-  const runMacroChild = spawn(runMacroExePath, [macroPath]);
-
-  runMacroChild.stderr.on('data', chunk => {
-    console.error('stderr:', chunk.toString());
-  })
-
-  runMacroChild.on('error', (error) => {
-    console.error(error);
-  })
-
-});
+    setTimeout(() => {
+        if (!proc.killed)
+        {
+            console.log('Force killing hardware process');
+            proc.kill();
+        }
+    }, 1000);
+}
 
 
 /***********************************************
- * ----------------- FUNCTIONS -----------------
+ * IPC Handlers
 ***********************************************/
 
-/***********************************************
- * FUNCTION: saveMacro
- * ---------------------------------------------
- * Saves a macro to 
- * Windows
- * C:\Users\YourName\AppData\Roaming\recurr-app
- * 
- * macOS
- * ~/Library/Application Support/recurr-app
- * 
- * Linux
- * ~/.config/recurr-app
-************************************************/
+ipcMain.on('startRecording', () => {
+    console.log("ipcMain: startRecording");
+    sendCommand({ cmd: 'startRecording' });
+});
 
-function saveMacro(macro) {
-  const userDataPath = app.getPath('userData');
-  const macrosDir = join(userDataPath, 'macros');
+ipcMain.on('stopRecording', () => {
+    console.log("ipcMain: stopRecording");
+    sendCommand({ cmd: 'stopRecording' });
+});
 
-  if (!fs.existsSync(macrosDir)) {
-    fs.mkdirSync(macrosDir, { recursive: true });
-  }
+ipcMain.on('runMacro', () => {
+    console.log("ipcMain: runMacro");
 
-  const savePath = join(macrosDir, 'macro.json');
+    const macroPath = join(macrosDir, 'macro.json');
 
-  fs.writeFileSync(savePath, JSON.stringify(macro, null, 2));
-
-  console.log("Macro saved");
-}
+    console.log('playback path: ', macroPath);
+    sendCommand({ cmd: 'playback', file: macroPath });
+});

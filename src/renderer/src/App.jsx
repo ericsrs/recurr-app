@@ -1,18 +1,19 @@
 
 
 function App() {
-  const ipcHandle = () => { 
-    console.log("sending ping");
-    window.electron.ipcRenderer.send('ping');
+
+  const startRecording = () => {
+    console.log("[App.jsx] startRecording called"),
+    window.api.startRecording()
   }
 
-  const copyKeystroke = () => {
-    console.log("copyKeystroke called"),
-    window.api.keystroke("e")
+  const stopRecording = () => {
+    console.log("[App.jsx] stopRecording called"),
+    window.api.stopRecording()
   }
 
   const runMacro = () => {
-    console.log("runMacro called")
+    console.log("[App.jsx] runMacro called")
     window.api.runMacro()
 
   }
@@ -22,20 +23,20 @@ function App() {
     <>
       <div className="actions">
         <div className="action">
-          <a target="_blank" rel="noreferrer" onClick={ipcHandle}>
-            Send IPC
+          <a target="_blank" rel="noreferrer" onClick={startRecording}>
+            Start Recording
           </a>
         </div>
 
         <div className="action">
-          <button onClick={copyKeystroke}>
-            click here
+          <button onClick={stopRecording}>
+            Stop Recording
           </button>
         </div>
 
         <div className="action">
           <button onClick={runMacro}>
-            run macro
+            Run Macro
           </button>
         </div>
       </div>
