@@ -1,8 +1,6 @@
 // recorder.cpp
 
-#include "Recorder.h"
-
-#include <iostream> /* cout */
+#include "../headers/recorder.h"
 
 
 Recorder& Recorder::instance()
@@ -15,6 +13,7 @@ Recorder& Recorder::instance()
 void Recorder::start()
 {
     recordedKeyEvents.clear();
+    startTime = 0;
 
     hook = SetWindowsHookEx(
         WH_KEYBOARD_LL,
@@ -68,20 +67,22 @@ LRESULT CALLBACK Recorder::KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam)
     {
         KBDLLHOOKSTRUCT* keyData = (KBDLLHOOKSTRUCT*)lParam;
 
-        if (wParam == WM_KEYDOWN)
+        if (wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN)
         {
-            std::cerr << "Key down: " << keyData->vkCode << "\n";
+            // first event anchors the clock
+            if (instance().startTime == 0)
+                instance().startTime = keyData->time;
 
-            if (keyData->vkCode == VK_ESCAPE)
-            {
-                std::cerr << "Exiting recording...\n";
-                PostQuitMessage(0);
-            }
-            else
-            {
-                KeyEvent event(keyData->vkCode, true, -1); // -1 timestamp temporarily
-                instance().recordedKeyEvents.push_back(event);
-            }
+            DWORD timestamp = keyData->time - instance().startTime;
+            instance().recordedKeyEvents.push_back(KeyEvent(keyData->vkCode, true, timestamp));
+        }
+        else if (wParam == WM_KEYUP || wParam == WM_SYSKEYUP)
+        {
+            if (instance().startTime == 0)
+                instance().startTime = keyData->time;
+
+            DWORD timestamp = keyData->time - instance().startTime;
+            instance().recordedKeyEvents.push_back(KeyEvent(keyData->vkCode, false, timestamp));
         }
     }
 

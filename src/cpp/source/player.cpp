@@ -1,9 +1,6 @@
 // player.cpp
 
-#include "Player.h"
-#include <iostream>
-#include <fstream>
-
+#include "../headers/player.h"
 
 Player& Player::instance()
 {
@@ -51,22 +48,39 @@ void Player::play()
 
     std::cerr << "Playing " << events.size() << " events\n";
 
+    // Wait before starting macro
     Sleep(3000);
 
     for (size_t i = 0; i < events.size(); ++i)
     {
-        // Gap between this event and the previous one
-        // if (i > 0)
-        // {
-        //     int gap = events[i].timestamp - events[i - 1].timestamp;
-        //     if (gap > 0) Sleep(gap);
-        // }
-
+        if (i > 0)
+        {
+            DWORD gap = events[i].timestamp - events[i - 1].timestamp;
+            if (gap > 0) Sleep(gap);
+        }
         sendKey(events[i].vkCode, events[i].keyDown);
-        Sleep(500);
     }
 
+    releaseModifiers(); // ← always clean up after playback
     std::cerr << "Playback complete\n";
+}
+
+
+void Player::releaseModifiers()
+{
+    const DWORD modifiers[] = {
+        VK_SHIFT, VK_LSHIFT,   VK_RSHIFT,
+        VK_CONTROL, VK_LCONTROL, VK_RCONTROL,
+        VK_MENU, VK_LMENU,    VK_RMENU,  // Alt
+        VK_LWIN, VK_RWIN
+    };
+
+    for (DWORD vk : modifiers)
+    {
+        // only release if Windows thinks it's still down
+        if (GetAsyncKeyState(vk) & 0x8000)
+            sendKey(vk, false);
+    }
 }
 
 

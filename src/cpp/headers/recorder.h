@@ -5,15 +5,16 @@
 
 #include <windows.h> /* HHOOK       */   
 #include <vector>    /* std::vector */
+#include <iostream>  /* std::cerr   */
 
-#include "json.hpp"  /* nhlomann    */
-#include "keyEvent.h"
+#include "../headers/json.hpp"   /* nhlomann */
+#include "../headers/keyEvent.h" /* keyEvent */
 
 using json = nlohmann::json;
 
 
 /*******************************************************
- * CLASS - Recorder.h
+ * CLASS - Recorder
  * -----------------------------------------------------
  * This class
 ********************************************************/
@@ -35,6 +36,7 @@ private:
 
     static LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam);
 
-    HHOOK hook = NULL;
+    DWORD startTime = 0;
+    HHOOK hook      = NULL;
     std::vector<KeyEvent> recordedKeyEvents;
 };
