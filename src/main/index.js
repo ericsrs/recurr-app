@@ -5,7 +5,7 @@ import { spawn }                              from "child_process"
 import * as fs                                from 'fs'
 
 /*  FILE PATHS  */
-const userDataPath       = app.getPath('userData');
+const userDataPath = app.getPath('userData');
 
 const macroExePath = join(process.cwd(), 'src', 'cpp', 'macro_engine.exe');
 const macrosDir    = join(userDataPath, 'macros'); // macros folder path
@@ -103,14 +103,42 @@ function handleResponse(msg)
  * Save Macro
 ***********************************************/
 
+function getNextId()
+{
+    const indexPath = join(macrosDir, 'index.json')
+
+    if (!fs.existsSync(indexPath)) 
+        return 1;
+
+    const index = JSON.parse(fs.readFileSync(indexPath, 'utf-8'))
+
+    if (index.length === 0) 
+        return 1;
+
+    return Math.max(...index.map(m => m.id)) + 1;
+}
+
 function saveMacro(events)
 {
     if (!fs.existsSync(macrosDir))
         fs.mkdirSync(macrosDir, { recursive: true });
 
-    const savePath = join(macrosDir, 'macro.json');
-    fs.writeFileSync(savePath, JSON.stringify(events, null, 2));
-    console.log('Macro saved to', savePath);
+    const indexPath = join(macrosDir, 'index.json')
+    const index     = fs.existsSync(indexPath)
+                      ? JSON.parse(fs.readFileSync(indexPath, 'utf-8'))
+                      : []
+
+    const id = getNextId()
+
+    // save events file
+    fs.writeFileSync(join(macrosDir, `${id}.json`), JSON.stringify(events, null, 2))
+
+    // update index
+    index.push({ id, name, trigger: [], active: true })
+    fs.writeFileSync(indexPath, JSON.stringify(index, null, 2))
+
+    console.log(`Macro ${id} saved`)
+    mainWindow.webContents.send('macro saved', { id, name })
 }
 
 
@@ -226,11 +254,58 @@ ipcMain.on('stopRecording', () => {
     sendCommand({ cmd: 'stopRecording' });
 });
 
-ipcMain.on('runMacro', () => {
+ipcMain.on('runMacro', (_, id) => {
     console.log("ipcMain: runMacro");
 
-    const macroPath = join(macrosDir, 'macro.json');
+    const macroPath = join(macrosDir, `${id}.json`);
 
     console.log('playback path: ', macroPath);
     sendCommand({ cmd: 'playback', file: macroPath });
 });
+
+
+// load sidebar list
+ipcMain.handle('getMacroIndex', () => {
+    const indexPath = join(macrosDir, 'index.json')
+    if (!fs.existsSync(indexPath)) 
+        return []
+
+    return JSON.parse(fs.readFileSync(indexPath, 'utf-8'))
+})
+
+// load events for a specific macro
+ipcMain.handle('getMacroEvents', (_, id) => {
+    const filePath = join(macrosDir, `${id}.json`)
+    if (!fs.existsSync(filePath)) 
+        return []
+
+    return JSON.parse(fs.readFileSync(filePath, 'utf-8'))
+})
+
+// rename a macro
+ipcMain.handle('renameMacro', (_, id, newName) => {
+    const indexPath = join(macrosDir, 'index.json')
+    const index     = JSON.parse(fs.readFileSync(indexPath, 'utf-8'))
+    const macro     = index.find(m => m.id === id)
+
+    if (!macro) 
+        return false
+
+    macro.name = newName
+    fs.writeFileSync(indexPath, JSON.stringify(index, null, 2))
+
+    return true
+})
+
+
+// delete a macro
+ipcMain.handle('deleteMacro', (_, id) => {
+    const indexPath = join(macrosDir, 'index.json')
+    let index       = JSON.parse(fs.readFileSync(indexPath, 'utf-8'))
+    index           = index.filter(m => m.id !== id)
+
+    fs.writeFileSync(indexPath, JSON.stringify(index, null, 2))
+    fs.unlinkSync(join(macrosDir, `${id}.json`))
+
+    return true
+})

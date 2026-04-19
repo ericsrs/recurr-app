@@ -18,9 +18,9 @@ function App() {
     window.api.stopRecording()
   }
 
-  const runMacro = () => {
+  const runMacro = (id) => {
     console.log("[App.jsx] runMacro called")
-    window.api.runMacro()
+    window.api.runMacro(id)
 
   }
   

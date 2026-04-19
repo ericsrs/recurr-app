@@ -3,16 +3,20 @@ import { electronAPI } from '@electron-toolkit/preload'
 
 const api = {
 
-    // Renderer -> Main
-    startRecording: () => ipcRenderer.send("startRecording"),
-    stopRecording:  () => ipcRenderer.send("stopRecording"),
-    runMacro:       () => ipcRenderer.send("runMacro"),
-
     // Main -> Renderer
     onMacroSaved:       (callback) => ipcRenderer.on("macroSaved",       () => callback()),
     onRecordingStarted: (callback) => ipcRenderer.on("recordingStarted", () => callback()),
     onPlaybackDone:     (callback) => ipcRenderer.on("playbackDone",     () => callback()),
     onError:            (callback) => ipcRenderer.on("error", (_, msg)   => callback(msg)),
+
+    // Edit Macro 
+    getMacroIndex:  ()           => ipcRenderer.invoke('getMacroIndex'),
+    getMacroEvents: (id)         => ipcRenderer.invoke('getMacroEvents', id),
+    renameMacro:    (id, name)   => ipcRenderer.invoke('renameMacro', id, name),
+    deleteMacro:    (id)         => ipcRenderer.invoke('deleteMacro', id),
+    startRecording: ()           => ipcRenderer.send('startRecording'),
+    stopRecording:  ()           => ipcRenderer.send('stopRecording'),
+    runMacro:       (id)         => ipcRenderer.send('runMacro', id),
 
 }
 
