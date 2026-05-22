@@ -14,6 +14,7 @@ export default function MacrosPage({ startRecording, stopRecording, runMacro }) 
 
   const selected = macros.find(m => m.id === selectedId)
 
+
   const handleStartRecording = () => {
     startRecording()
     setRecordingState(true)
@@ -25,10 +26,17 @@ export default function MacrosPage({ startRecording, stopRecording, runMacro }) 
     setRecordingState(false)
   }
 
+  const handleDeleteMacro = (id) => {
+    window.api.deleteMacro(id).then(() => { 
+      setSelectedId(null); 
+      setMacros(prev => prev.filter(m => m.id !== id))  
+    }); 
+  }
+
   // load macros from index
   useEffect(() => {
       window.api.getMacroIndex().then(setMacros)
-  }, [])
+  }, [macros])
 
 
   return (
@@ -47,7 +55,7 @@ export default function MacrosPage({ startRecording, stopRecording, runMacro }) 
             key={macro.id}
             macro={macro}
             onClick={() => setSelectedId(macro.id) }
-            onDelete={(id) => window.api.deleteMacro(id).then(() => setSelectedId(null))}
+            onDelete={(id) => handleDeleteMacro(id) } 
           />
         ))}
       </div>
