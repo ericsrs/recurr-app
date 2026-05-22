@@ -8,7 +8,8 @@ import * as fs                                from 'fs'
 const userDataPath = app.getPath('userData');
 
 const macroExePath = join(process.cwd(), 'src', 'cpp', 'macro_engine.exe');
-const macrosDir    = join(userDataPath, 'macros'); // macros folder path
+const macrosDir    = join(userDataPath, 'Macros'); // macros folder path
+const indexPath    = join(macrosDir, 'index.json');
 
 const iconPath = join(__dirname, '../../resources/Recurr-icon.png');
 const preloadPath = join(__dirname, '../preload/index.js');
@@ -105,8 +106,6 @@ function handleResponse(msg)
 
 function getNextId()
 {
-    const indexPath = join(macrosDir, 'index.json')
-
     if (!fs.existsSync(indexPath)) 
         return 1;
 
@@ -120,21 +119,26 @@ function getNextId()
 
 function saveMacro(events)
 {
+    // create macros directory if it doesnt exist
     if (!fs.existsSync(macrosDir))
+    {
         fs.mkdirSync(macrosDir, { recursive: true });
+    }
+    
+    const id = getNextId();
+    const name = `Macro ${id}`;
 
-    const indexPath = join(macrosDir, 'index.json')
-    const index     = fs.existsSync(indexPath)
-                      ? JSON.parse(fs.readFileSync(indexPath, 'utf-8'))
-                      : []
+    // initialize index.json if it doesn't exist
+    if (!fs.existsSync(indexPath))
+        fs.writeFileSync(indexPath, JSON.stringify([], null, 2));
 
-    const id = getNextId()
+    const index = JSON.parse(fs.readFileSync(indexPath, 'utf-8'));
 
     // save events file
     fs.writeFileSync(join(macrosDir, `${id}.json`), JSON.stringify(events, null, 2))
 
     // update index
-    index.push({ id, name, trigger: [], active: true })
+    index.push({ id, name })
     fs.writeFileSync(indexPath, JSON.stringify(index, null, 2))
 
     console.log(`Macro ${id} saved`)
@@ -282,30 +286,17 @@ ipcMain.handle('getMacroEvents', (_, id) => {
     return JSON.parse(fs.readFileSync(filePath, 'utf-8'))
 })
 
-// rename a macro
-ipcMain.handle('renameMacro', (_, id, newName) => {
-    const indexPath = join(macrosDir, 'index.json')
-    const index     = JSON.parse(fs.readFileSync(indexPath, 'utf-8'))
-    const macro     = index.find(m => m.id === id)
-
-    if (!macro) 
-        return false
-
-    macro.name = newName
-    fs.writeFileSync(indexPath, JSON.stringify(index, null, 2))
-
-    return true
-})
-
 
 // delete a macro
 ipcMain.handle('deleteMacro', (_, id) => {
-    const indexPath = join(macrosDir, 'index.json')
-    let index       = JSON.parse(fs.readFileSync(indexPath, 'utf-8'))
-    index           = index.filter(m => m.id !== id)
+    id = Number(id);
 
-    fs.writeFileSync(indexPath, JSON.stringify(index, null, 2))
-    fs.unlinkSync(join(macrosDir, `${id}.json`))
+    const indexPath = join(macrosDir, 'index.json');
+    let index       = JSON.parse(fs.readFileSync(indexPath, 'utf-8'));
+    index           = index.filter(m => m.id !== id);
 
-    return true
+    fs.writeFileSync(indexPath, JSON.stringify(index, null, 2));
+    fs.unlinkSync(join(macrosDir, `${id}.json`));
+
+    return true;
 })

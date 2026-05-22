@@ -12,7 +12,6 @@ const api = {
     // Edit Macro 
     getMacroIndex:  ()           => ipcRenderer.invoke('getMacroIndex'),
     getMacroEvents: (id)         => ipcRenderer.invoke('getMacroEvents', id),
-    renameMacro:    (id, name)   => ipcRenderer.invoke('renameMacro', id, name),
     deleteMacro:    (id)         => ipcRenderer.invoke('deleteMacro', id),
     startRecording: ()           => ipcRenderer.send('startRecording'),
     stopRecording:  ()           => ipcRenderer.send('stopRecording'),
