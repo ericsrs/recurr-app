@@ -270,6 +270,8 @@ ipcMain.on('runMacro', (_, id) => {
 
 // load sidebar list
 ipcMain.handle('getMacroIndex', () => {
+    //console.log("Retrieving Macro Index");
+
     const indexPath = join(macrosDir, 'index.json')
     if (!fs.existsSync(indexPath)) 
         return []
@@ -279,6 +281,8 @@ ipcMain.handle('getMacroIndex', () => {
 
 // load events for a specific macro
 ipcMain.handle('getMacroEvents', (_, id) => {
+    console.log("Retrieving Macro Events ID: ", id);
+
     const filePath = join(macrosDir, `${id}.json`)
     if (!fs.existsSync(filePath)) 
         return []
@@ -289,6 +293,8 @@ ipcMain.handle('getMacroEvents', (_, id) => {
 
 // delete a macro
 ipcMain.handle('deleteMacro', (_, id) => {
+    console.log("Deleting Macro ID: ", id);
+
     id = Number(id);
 
     const indexPath = join(macrosDir, 'index.json');
