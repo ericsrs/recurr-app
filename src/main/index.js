@@ -84,7 +84,6 @@ function handleResponse(msg)
         console.log('events length: ', msg.events?.length);
 
         saveMacro(msg.events);
-        mainWindow.webContents.send('macroSaved');
     }
     else if (msg.status === 'playback')
     {
@@ -104,6 +103,25 @@ function handleResponse(msg)
  * Save Macro
 ***********************************************/
 
+
+function readIndex()
+{
+    if (!fs.existsSync(indexPath))
+        return [];
+
+    return JSON.parse(fs.readFileSync(indexPath, 'utf-8'));
+}
+
+
+function writeIndex(index)
+{
+    fs.writeFileSync(indexPath, JSON.stringify(index, null, 2));
+
+    if (mainWindow && !mainWindow.isDestroyed())
+        mainWindow.webContents.send('macrosUpdated', index);
+}
+
+
 function getNextId()
 {
     if (!fs.existsSync(indexPath)) 
@@ -117,32 +135,22 @@ function getNextId()
     return Math.max(...index.map(m => m.id)) + 1;
 }
 
+
 function saveMacro(events)
 {
-    // create macros directory if it doesnt exist
     if (!fs.existsSync(macrosDir))
-    {
         fs.mkdirSync(macrosDir, { recursive: true });
-    }
-    
-    const id = getNextId();
+
+    const id   = getNextId();
     const name = `Macro ${id}`;
 
-    // initialize index.json if it doesn't exist
-    if (!fs.existsSync(indexPath))
-        fs.writeFileSync(indexPath, JSON.stringify([], null, 2));
-
-    const index = JSON.parse(fs.readFileSync(indexPath, 'utf-8'));
-
     // save events file
-    fs.writeFileSync(join(macrosDir, `${id}.json`), JSON.stringify(events, null, 2))
+    fs.writeFileSync(join(macrosDir, `${id}.json`), JSON.stringify(events, null, 2));
 
-    // update index
-    index.push({ id, name })
-    fs.writeFileSync(indexPath, JSON.stringify(index, null, 2))
+    // update index (this also notifies the renderer)
+    writeIndex([...readIndex(), { id, name }]);
 
-    console.log(`Macro ${id} saved`)
-    mainWindow.webContents.send('macro saved', { id, name })
+    console.log(`Macro ${id} saved`);
 }
 
 
@@ -297,12 +305,10 @@ ipcMain.handle('deleteMacro', (_, id) => {
 
     id = Number(id);
 
-    const indexPath = join(macrosDir, 'index.json');
-    let index       = JSON.parse(fs.readFileSync(indexPath, 'utf-8'));
-    index           = index.filter(m => m.id !== id);
+    writeIndex(readIndex().filter(m => m.id !== id));
 
-    fs.writeFileSync(indexPath, JSON.stringify(index, null, 2));
-    fs.unlinkSync(join(macrosDir, `${id}.json`));
+    const filePath = join(macrosDir, `${id}.json`);
+    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
 
     return true;
 })

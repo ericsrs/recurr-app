@@ -4,7 +4,12 @@ import { electronAPI } from '@electron-toolkit/preload'
 const api = {
 
     // Main -> Renderer
-    onMacroSaved:       (callback) => ipcRenderer.on("macroSaved",       () => callback()),
+    //onMacroSaved:       (callback) => ipcRenderer.on("macroSaved",       () => callback()),
+    onMacrosUpdated: (callback) => { const handler = (_, macros) => callback(macros)
+                                        ipcRenderer.on('macrosUpdated', handler)
+                                        return () => ipcRenderer.removeListener('macrosUpdated', handler) 
+                                    },
+
     onRecordingStarted: (callback) => ipcRenderer.on("recordingStarted", () => callback()),
     onPlaybackDone:     (callback) => ipcRenderer.on("playbackDone",     () => callback()),
     onError:            (callback) => ipcRenderer.on("error", (_, msg)   => callback(msg)),
