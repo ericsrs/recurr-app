@@ -1,5 +1,11 @@
 
 
+import { BrowserRouter, Route, Routes } from 'react-router-dom'
+
+
+import MacrosPage from "./pages/MacrosPage"
+
+
 function App() {
 
   const startRecording = () => {
@@ -12,35 +18,25 @@ function App() {
     window.api.stopRecording()
   }
 
-  const runMacro = () => {
+  const runMacro = (id) => {
     console.log("[App.jsx] runMacro called")
-    window.api.runMacro()
+    window.api.runMacro(id)
 
   }
   
 
   return (
-    <>
-      <div className="actions">
-        <div className="action">
-          <a target="_blank" rel="noreferrer" onClick={startRecording}>
-            Start Recording
-          </a>
-        </div>
-
-        <div className="action">
-          <button onClick={stopRecording}>
-            Stop Recording
-          </button>
-        </div>
-
-        <div className="action">
-          <button onClick={runMacro}>
-            Run Macro
-          </button>
-        </div>
-      </div>
-    </>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={
+          <MacrosPage 
+            startRecording={startRecording}
+            stopRecording={stopRecording}
+            runMacro={runMacro}
+          />
+        } />
+      </Routes>
+    </BrowserRouter>
   )
 }
 

@@ -5,11 +5,21 @@
 #include <windows.h>
 #include <vector>
 #include <string>
+#include <iostream>
+#include <fstream>
 
-#include "json.hpp"
-#include "keyEvent.h"
+#include "../headers/json.hpp"   /* nhlomann */
+#include "../headers/keyEvent.h" /* keyEvent */
 
 using json = nlohmann::json;
+
+
+/*******************************************************
+ * CLASS - Player
+ * -----------------------------------------------------
+ * This class
+********************************************************/
+
 
 class Player
 {
@@ -25,6 +35,7 @@ private:
     Player(const Player&) = delete;
     Player& operator=(const Player&) = delete;
 
+    void releaseModifiers();
     void sendKey(DWORD vkCode, bool keyDown);
 
     std::vector<KeyEvent> events;

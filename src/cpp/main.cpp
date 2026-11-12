@@ -3,9 +3,9 @@
 #include <string>
 #include <windows.h>
 
-#include "json.hpp"
-#include "Recorder.h"
-#include "Player.h"
+#include "headers/json.hpp"   /* nhlomann */
+#include "headers/recorder.h" /* Recorder */
+#include "headers/player.h"   /* Player   */
 
 #define WM_START_RECORDING (WM_USER + 1)
 #define WM_STOP_RECORDING  (WM_USER + 2)

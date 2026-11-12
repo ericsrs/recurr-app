@@ -5,10 +5,11 @@ import { spawn }                              from "child_process"
 import * as fs                                from 'fs'
 
 /*  FILE PATHS  */
-const userDataPath       = app.getPath('userData');
+const userDataPath = app.getPath('userData');
 
 const macroExePath = join(process.cwd(), 'src', 'cpp', 'macro_engine.exe');
-const macrosDir    = join(userDataPath, 'macros'); // macros folder path
+const macrosDir    = join(userDataPath, 'Macros'); // macros folder path
+const indexPath    = join(macrosDir, 'index.json');
 
 const iconPath = join(__dirname, '../../resources/Recurr-icon.png');
 const preloadPath = join(__dirname, '../preload/index.js');
@@ -83,7 +84,6 @@ function handleResponse(msg)
         console.log('events length: ', msg.events?.length);
 
         saveMacro(msg.events);
-        mainWindow.webContents.send('macroSaved');
     }
     else if (msg.status === 'playback')
     {
@@ -103,14 +103,54 @@ function handleResponse(msg)
  * Save Macro
 ***********************************************/
 
+
+function readIndex()
+{
+    if (!fs.existsSync(indexPath))
+        return [];
+
+    return JSON.parse(fs.readFileSync(indexPath, 'utf-8'));
+}
+
+
+function writeIndex(index)
+{
+    fs.writeFileSync(indexPath, JSON.stringify(index, null, 2));
+
+    if (mainWindow && !mainWindow.isDestroyed())
+        mainWindow.webContents.send('macrosUpdated', index);
+}
+
+
+function getNextId()
+{
+    if (!fs.existsSync(indexPath)) 
+        return 1;
+
+    const index = JSON.parse(fs.readFileSync(indexPath, 'utf-8'))
+
+    if (index.length === 0) 
+        return 1;
+
+    return Math.max(...index.map(m => m.id)) + 1;
+}
+
+
 function saveMacro(events)
 {
     if (!fs.existsSync(macrosDir))
         fs.mkdirSync(macrosDir, { recursive: true });
 
-    const savePath = join(macrosDir, 'macro.json');
-    fs.writeFileSync(savePath, JSON.stringify(events, null, 2));
-    console.log('Macro saved to', savePath);
+    const id   = getNextId();
+    const name = `Macro ${id}`;
+
+    // save events file
+    fs.writeFileSync(join(macrosDir, `${id}.json`), JSON.stringify(events, null, 2));
+
+    // update index (this also notifies the renderer)
+    writeIndex([...readIndex(), { id, name }]);
+
+    console.log(`Macro ${id} saved`);
 }
 
 
@@ -226,11 +266,49 @@ ipcMain.on('stopRecording', () => {
     sendCommand({ cmd: 'stopRecording' });
 });
 
-ipcMain.on('runMacro', () => {
+ipcMain.on('runMacro', (_, id) => {
     console.log("ipcMain: runMacro");
 
-    const macroPath = join(macrosDir, 'macro.json');
+    const macroPath = join(macrosDir, `${id}.json`);
 
     console.log('playback path: ', macroPath);
     sendCommand({ cmd: 'playback', file: macroPath });
 });
+
+
+// load sidebar list
+ipcMain.handle('getMacroIndex', () => {
+    //console.log("Retrieving Macro Index");
+
+    const indexPath = join(macrosDir, 'index.json')
+    if (!fs.existsSync(indexPath)) 
+        return []
+
+    return JSON.parse(fs.readFileSync(indexPath, 'utf-8'))
+})
+
+// load events for a specific macro
+ipcMain.handle('getMacroEvents', (_, id) => {
+    console.log("Retrieving Macro Events ID: ", id);
+
+    const filePath = join(macrosDir, `${id}.json`)
+    if (!fs.existsSync(filePath)) 
+        return []
+
+    return JSON.parse(fs.readFileSync(filePath, 'utf-8'))
+})
+
+
+// delete a macro
+ipcMain.handle('deleteMacro', (_, id) => {
+    console.log("Deleting Macro ID: ", id);
+
+    id = Number(id);
+
+    writeIndex(readIndex().filter(m => m.id !== id));
+
+    const filePath = join(macrosDir, `${id}.json`);
+    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+
+    return true;
+})
