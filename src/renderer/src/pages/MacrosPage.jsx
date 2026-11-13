@@ -49,11 +49,94 @@ const DEMO_MACROS = [
 ]
 
 export default function MacrosPage({ startRecording, stopRecording, runMacro }) {
-  const [selectedId, setSelectedId] = useState(DEMO_MACROS[0].id)
+  const [macros, setMacros]               = useState([])
+  const [selectedId, setSelectedId]       = useState(null)
+  const [selectedMacro, setSelectedMacro] = useState(null)
+  const [recording, setRecordingState]    = useState(false)
 
-  const activeMacros   = DEMO_MACROS.filter(m => m.active)
-  const inactiveMacros = DEMO_MACROS.filter(m => !m.active)
-  const selected       = DEMO_MACROS.find(m => m.id === selectedId)
+  // Windows vk codes to readable word
+  const vkMap = {
+    8:'Backspace', 9:'Tab', 13:'Enter', 16:'Shift', 17:'Ctrl', 18:'Alt',
+    20:'Caps lock', 27:'Esc', 32:'Space', 37:'←', 38:'↑', 39:'→', 40:'↓',
+    48:'0',49:'1',50:'2',51:'3',52:'4',53:'5',54:'6',55:'7',56:'8',57:'9',
+    65:'A',66:'B',67:'C',68:'D',69:'E',70:'F',71:'G',72:'H',73:'I',74:'J',
+    75:'K',76:'L',77:'M',78:'N',79:'O',80:'P',81:'Q',82:'R',83:'S',84:'T',
+    85:'U',86:'V',87:'W',88:'X',89:'Y',90:'Z', 160:'Shift', 164:'Alt', 220:'Backslash'
+  }
+  const keyName = (vk) => vkMap[vk] ?? `VK${vk}`;
+
+
+  const handleStartRecording = (id) => {
+    console.log("[MacrosPage.jsx] handleStartRecording called")
+    if (selectedId == null) 
+    {
+      console.log("NULL id selected, returning...")
+      return
+    }
+    window.api.startRecording(id)
+    setRecordingState(true);
+  }
+
+
+  const handleStopRecording = () => {
+    console.log("[MacrosPage.jsx] handleStopRecording called")
+    window.api.stopRecording()
+    setRecordingState(false);
+  }
+
+
+  const handleDeleteMacro = (id) => {
+    if (id == null) return
+
+    console.log("Deleting MacroID: ", id)
+
+    window.api.deleteMacro(id)
+    setSelectedId(null)
+    setSelectedMacro(null)
+  }
+
+
+  const handleSelectMacro = (id) => {
+    if (id == selectedId) return
+    setSelectedId(id)
+    window.api.getMacroEvents(id).then(events => {
+      setSelectedMacro({ id, events })
+    })
+  }
+
+
+  const handleAddMacro = async () => {
+    const macro = await window.api.addMacro()
+    setSelectedId(macro.id)
+    setSelectedMacro({ ...macro, events: [] })
+  }
+
+
+  const handleRunMacro = (id) => {
+    console.log("[MacrosPage.jsx] handleRunMacro called")
+    window.api.runMacro(id)
+  }
+
+  const handleRenameMacro = (id, name) => {
+    console.log('[MacrosPage.jsx] handleRenameMacro:', id, '->', name)
+    window.api.renameMacro(id, name)
+  }
+
+
+  // load macros from index
+  useEffect(() => {
+    window.api.getMacroIndex().then(setMacros)    // initial load
+    return window.api.onMacrosUpdated(setMacros)  // every later change
+  }, [])
+
+
+  // reload macro events after being recorded
+  useEffect(() => {
+    return window.api.onMacroEventsUpdated(({ id, events }) => {
+      setSelectedMacro(prev => prev && prev.id === id ? { ...prev, events } : prev)
+    })
+  }, [])
+
 
   return (
     <div className="mp-page">
@@ -65,39 +148,25 @@ export default function MacrosPage({ startRecording, stopRecording, runMacro }) 
           <button className="mp-sidebar-add">+</button>
         </div>
 
-        <div className="mp-macro-list">
-          {activeMacros.length > 0 && (
-            <>
-              <div className="mp-group-label">Active</div>
-              {activeMacros.map(m => (
-                <MacroItem
-                  key={m.id}
-                  macro={m}
-                  active={m.id === selectedId}
-                  onClick={() => setSelectedId(m.id)}
-                />
-              ))}
-            </>
-          )}
-
-          {inactiveMacros.length > 0 && (
-            <>
-              <div className="mp-group-label" style={{ marginTop: 8 }}>Inactive</div>
-              {inactiveMacros.map(m => (
-                <MacroItem
-                  key={m.id}
-                  macro={m}
-                  active={m.id === selectedId}
-                  onClick={() => setSelectedId(m.id)}
-                />
-              ))}
-            </>
-          )}
-        </div>
+      {/* Macros in Sidebar */}
+      <div className="mp-macro-list">
+        {macros.map(macro => ( 
+          <MacroItem
+            key={macro.id}
+            macro={macro}
+            selected={macro.id === selectedId}
+            onClick={() => handleSelectMacro(macro.id) }
+            onDelete={(id) => handleDeleteMacro(macro.id) } 
+            onRename={(name) => handleRenameMacro(macro.id, name)}
+          />
+        ))}
+      </div>
 
         <div className="mp-sidebar-footer">
           <span className="mp-status-dot" />
-          C++ layer connected
+
+          {/* Profiles */}
+          
         </div>
       </aside>
 
