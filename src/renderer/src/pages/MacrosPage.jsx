@@ -75,6 +75,11 @@ export default function MacrosPage({ startRecording, stopRecording, runMacro }) 
     window.api.runMacro(id)
   }
 
+  const handleRenameMacro = (id, name) => {
+    console.log('[MacrosPage.jsx] handleRenameMacro:', id, '->', name)
+    window.api.renameMacro(id, name)
+  }
+
 
   // load macros from index
   useEffect(() => {
@@ -109,6 +114,7 @@ export default function MacrosPage({ startRecording, stopRecording, runMacro }) 
             selected={macro.id === selectedId}
             onClick={() => handleSelectMacro(macro.id) }
             onDelete={(id) => handleDeleteMacro(macro.id) } 
+            onRename={(name) => handleRenameMacro(macro.id, name)}
           />
         ))}
       </div>

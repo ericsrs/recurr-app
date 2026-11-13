@@ -343,3 +343,16 @@ ipcMain.handle('deleteMacro', (_, id) => {
 
     return true;
 })
+
+
+ipcMain.handle('renameMacro', (_, id, name) => {
+    id   = Number(id);
+    name = String(name).trim();
+
+    console.log("ipcMain: renameMacro", id, name);
+
+    if (!name) return false;
+
+    writeIndex(readIndex().map(m => m.id === id ? { ...m, name } : m));
+    return true;
+})

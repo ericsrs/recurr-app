@@ -29,6 +29,7 @@ const api = {
     startRecording: (id)         => ipcRenderer.send('startRecording', id),
     stopRecording:  ()           => ipcRenderer.send('stopRecording'),
     runMacro:       (id)         => ipcRenderer.send('runMacro', id),
+    renameMacro:    (id, name)   => ipcRenderer.invoke('renameMacro', id, name),
 
 }
 
