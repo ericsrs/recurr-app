@@ -58,6 +58,8 @@ export default function MacrosPage({ }) {
 
 
   const handleSelectMacro = (id) => {
+    if (recording) return
+
     setSelectedId(id)
     window.api.getMacroEvents(id).then(events => {
       setSelectedMacro({ id, events })
@@ -124,7 +126,7 @@ export default function MacrosPage({ }) {
             onKeyDown={(e) => e.key === 'Escape' && setSearchQuery('')}
           />
           {searchQuery && (
-            <button className="mp-search-clear" onClick={() => setQuery('')} title="Clear search">✕</button>
+            <button className="mp-search-clear" onClick={() => setSearchQuery('')} title="Clear search">✕</button>
           )}
       </div>
 
