@@ -1,52 +1,11 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+
+// Components
+import MacroItem from '../components/MacroItem.jsx'
+
+// Styles
 import '../styles/MacrosPage.css'
 
-const DEMO_MACROS = [
-  {
-    id: 1,
-    name: 'Open Terminal',
-    trigger: ['Ctrl', 'Alt', 'T'],
-    active: true,
-    steps: [
-      { label: 'Press Win key',  type: 'keypress' },
-      { label: 'Type "wt"',      type: 'type'     },
-      { label: 'Wait 400ms',     type: 'delay'    },
-      { label: 'Press Enter',    type: 'keypress' },
-    ],
-  },
-  {
-    id: 2,
-    name: 'Volume Boost',
-    trigger: ['Ctrl', 'Alt', 'Up'],
-    active: true,
-    steps: [
-      { label: 'Read volume',   type: 'keypress' },
-      { label: 'Set +20%',      type: 'keypress' },
-    ],
-  },
-  {
-    id: 3,
-    name: 'Screenshot',
-    trigger: ['Ctrl', 'Shift', 'S'],
-    active: true,
-    steps: [
-      { label: 'Press PrintScreen', type: 'keypress' },
-      { label: 'Wait 100ms',        type: 'delay'    },
-      { label: 'Ctrl+S to save',    type: 'keypress' },
-    ],
-  },
-  {
-    id: 4,
-    name: 'Lock & Sleep',
-    trigger: ['Ctrl', 'Alt', 'L'],
-    active: false,
-    steps: [
-      { label: 'Win+L to lock',     type: 'keypress' },
-      { label: 'Wait 2000ms',       type: 'delay'    },
-      { label: 'Send sleep signal', type: 'keypress' },
-    ],
-  },
-]
 
 export default function MacrosPage({ startRecording, stopRecording, runMacro }) {
   const [macros, setMacros]               = useState([])
@@ -97,7 +56,6 @@ export default function MacrosPage({ startRecording, stopRecording, runMacro }) 
 
 
   const handleSelectMacro = (id) => {
-    if (id == selectedId) return
     setSelectedId(id)
     window.api.getMacroEvents(id).then(events => {
       setSelectedMacro({ id, events })
@@ -145,9 +103,21 @@ export default function MacrosPage({ startRecording, stopRecording, runMacro }) 
       <aside className="mp-sidebar">
         <div className="mp-sidebar-header">
           <span className="mp-sidebar-title">Macros</span>
-          <button className="mp-sidebar-add">+</button>
+          <button className="mp-sidebar-add" onClick={handleAddMacro}>+</button>
         </div>
 
+      <div className="mp-macro-list">
+        {macros.map(macro => ( 
+          <MacroItem
+            key={macro.id}
+            macro={macro}
+            selected={macro.id === selectedId}
+            onClick={() => handleSelectMacro(macro.id) }
+            onDelete={(id) => handleDeleteMacro(macro.id) } 
+            onRename={(name) => handleRenameMacro(macro.id, name)}
+          />
+        ))}
+      </div>
       {/* Macros in Sidebar */}
       <div className="mp-macro-list">
         {macros.map(macro => ( 
@@ -164,8 +134,6 @@ export default function MacrosPage({ startRecording, stopRecording, runMacro }) 
 
         <div className="mp-sidebar-footer">
           <span className="mp-status-dot" />
-
-          {/* Profiles */}
           
         </div>
       </aside>
@@ -174,75 +142,27 @@ export default function MacrosPage({ startRecording, stopRecording, runMacro }) 
       <div className="mp-main">
         <div className="mp-topbar">
           <div className="mp-topbar-left">
-            <span className="mp-topbar-title">{selected?.name ?? 'No macro selected'}</span>
-            {selected && (
-              <span className={`mp-badge ${selected.active ? 'mp-badge-active' : 'mp-badge-inactive'}`}>
-                {selected.active ? 'Active' : 'Inactive'}
-              </span>
-            )}
           </div>
 
           <div className="mp-actions-row">
-            <button className="mp-btn mp-btn-record" onClick={startRecording}>Start recording</button>
-            <button className="mp-btn mp-btn-stop"   onClick={stopRecording}>Stop recording</button>
-            <button className="mp-btn mp-btn-run"    onClick={runMacro}>Run macro</button>
+            <button className="mp-btn mp-btn-run"    disabled={ selectedId == null }              onClick={() => handleRunMacro(selectedId)}>Run macro</button>
+            <button className="mp-btn mp-btn-record" disabled={ selectedId == null || recording } onClick={() => handleStartRecording(selectedId)}>Start recording</button>
+            <button className="mp-btn mp-btn-stop"   disabled={ !recording }                      onClick={handleStopRecording}>Stop recording</button>
+            <button className="mp-btn mp-btn-delete" disabled={ selectedId == null || recording } onClick={() => handleDeleteMacro(selectedId)}>Delete macro</button>
           </div>
         </div>
 
         <div className="mp-content">
-          {selected ? (
-            <>
-              <section>
-                <div className="mp-section-label">Trigger</div>
-                <div className="mp-card">
-                  <div className="mp-trigger-row">
-                    {selected.trigger.map((k, i) => (
-                      <span key={i}>
-                        <kbd className="mp-key">{k}</kbd>
-                        {i < selected.trigger.length - 1 && (
-                          <span className="mp-key-sep">+</span>
-                        )}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </section>
-
-              <section>
-                <div className="mp-section-label">Steps</div>
-                <div className="mp-card">
-                  <div className="mp-steps">
-                    {selected.steps.map((step, i) => (
-                      <div key={i} className="mp-step">
-                        <span className="mp-step-num">{i + 1}</span>
-                        <span className="mp-step-label">{step.label}</span>
-                        <span className={`mp-step-type mp-type-${step.type}`}>{step.type}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </section>
-            </>
-          ) : (
-            <div className="mp-empty">Select a macro to view details</div>
-          )}
+          {selectedMacro?.events?.map((event, i) => (
+            <div key={i} className={`mp-event-row ${event.keyDown ? 'mp-event-down' : 'mp-event-up'}`}>
+              <span className="mp-event-index">{i + 1}</span>
+              <span className="mp-event-key">{keyName(event.vkCode)}</span>
+              <span className="mp-event-type">{event.keyDown ? '↓ down' : '↑ up'}</span>
+              <span className="mp-event-time">{event.timestamp}ms</span>
+            </div>
+          ))}
         </div>
       </div>
     </div>
-  )
-}
-
-function MacroItem({ macro, active, onClick }) {
-  return (
-    <button
-      className={`mp-macro-item ${active ? 'mp-macro-item-active' : ''} ${!macro.active ? 'mp-macro-item-inactive' : ''}`}
-      onClick={onClick}
-    >
-      <span className={`mp-macro-dot ${macro.active ? 'mp-dot-green' : 'mp-dot-gray'}`} />
-      <span className="mp-macro-item-text">
-        <span className="mp-macro-item-name">{macro.name}</span>
-        <span className="mp-macro-item-sub">{macro.trigger.join(' + ')}</span>
-      </span>
-    </button>
   )
 }

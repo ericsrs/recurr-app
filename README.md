@@ -1,6 +1,6 @@
 # recurr-app
 
-A macro app allowing a user to save their keyboard and mouse input, and replay them an arbitrary amount of times.
+A WIP macro app allowing a user to record keystrokes and repeat them at the click of a button.
 
 ## Recommended IDE Setup
 
