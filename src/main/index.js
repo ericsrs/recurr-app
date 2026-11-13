@@ -19,6 +19,7 @@ const preloadPath = join(__dirname, '../preload/index.js');
 let hwProcess  = null;
 let buffer     = '';
 let mainWindow = null;
+let recordingId = null;
 
 
 /***********************************************
@@ -78,12 +79,14 @@ function handleResponse(msg)
     }
     else if (msg.status === 'stopped')
     {
-        console.log('Recording stopped');
+        console.log('Recording stopped, events:', msg.events?.length);
 
-        console.log('events received: ', msg.events);
-        console.log('events length: ', msg.events?.length);
+        if (recordingId !== null)
+            saveEvents(recordingId, msg.events);
+        else
+            console.error('Recording stopped with no target macro');
 
-        saveMacro(msg.events);
+        recordingId = null;
     }
     else if (msg.status === 'playback')
     {
@@ -136,6 +139,9 @@ function getNextId()
 }
 
 
+// needs to be 2 functions
+// save macro by ID to overwrite existing macros
+// create a macro object with no events to be overwritten
 function saveMacro(events)
 {
     if (!fs.existsSync(macrosDir))
@@ -151,8 +157,25 @@ function saveMacro(events)
     writeIndex([...readIndex(), { id, name }]);
 
     console.log(`Macro ${id} saved`);
+    return {id, name}
 }
 
+
+function saveEvents(id, events)
+{
+    const filePath = join(macrosDir, `${id}.json`);
+
+    if (!fs.existsSync(filePath))
+    {
+        console.error(`Macro ${id} doesn't exist, discarding recording`);
+        return;
+    }
+
+    fs.writeFileSync(filePath, JSON.stringify(events, null, 2));
+
+    if (mainWindow && !mainWindow.isDestroyed())
+        mainWindow.webContents.send('macroEventsUpdated', { id, events });
+}
 
 
 /***********************************************
@@ -256,8 +279,9 @@ function shutdownHardwareProcess()
  * IPC Handlers
 ***********************************************/
 
-ipcMain.on('startRecording', () => {
-    console.log("ipcMain: startRecording");
+ipcMain.on('startRecording', (_, id) => {
+    console.log("ipcMain: startRecording, id:", id);
+    recordingId = Number(id);
     sendCommand({ cmd: 'startRecording' });
 });
 
@@ -297,6 +321,13 @@ ipcMain.handle('getMacroEvents', (_, id) => {
 
     return JSON.parse(fs.readFileSync(filePath, 'utf-8'))
 })
+
+
+// create a new macro item
+ipcMain.handle('addMacro', () => {
+    console.log("ipcMain: addMacro");
+    return saveMacro([]);
+});
 
 
 // delete a macro

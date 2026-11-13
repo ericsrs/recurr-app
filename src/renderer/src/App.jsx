@@ -1,5 +1,3 @@
-
-
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 
 
@@ -18,11 +16,11 @@ function App() {
     window.api.stopRecording()
   }
 
-  const runMacro = (id) => {
-    console.log("[App.jsx] runMacro called")
-    window.api.runMacro(id)
+  // const runMacro = (id) => {
+  //   console.log("[App.jsx] runMacro called")
+  //   window.api.runMacro(id)
 
-  }
+  // }
   
 
   return (
@@ -30,9 +28,9 @@ function App() {
       <Routes>
         <Route path="/" element={
           <MacrosPage 
-            startRecording={startRecording}
-            stopRecording={stopRecording}
-            runMacro={runMacro}
+            //startRecording={startRecording}
+            //stopRecording={stopRecording}
+            //runMacro={runMacro}
           />
         } />
       </Routes>

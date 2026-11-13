@@ -13,8 +13,6 @@ export default function MacrosPage({ startRecording, stopRecording, runMacro }) 
   const [selectedMacro, setSelectedMacro] = useState(null)
   const [recording, setRecordingState]    = useState(false)
 
-  //const selected = macros.find(m => m.id === selectedId)
-
   // Windows vk codes to readable word
   const vkMap = {
     8:'Backspace', 9:'Tab', 13:'Enter', 16:'Shift', 17:'Ctrl', 18:'Alt',
@@ -27,20 +25,30 @@ export default function MacrosPage({ startRecording, stopRecording, runMacro }) 
   const keyName = (vk) => vkMap[vk] ?? `VK${vk}`;
 
 
-  const handleStartRecording = () => {
-    startRecording();
+  const handleStartRecording = (id) => {
+    console.log("[MacrosPage.jsx] handleStartRecording called")
+    if (selectedId == null) 
+    {
+      console.log("NULL id selected, returning...")
+      return
+    }
+    window.api.startRecording(id)
     setRecordingState(true);
   }
 
 
   const handleStopRecording = () => {
-    stopRecording();
+    console.log("[MacrosPage.jsx] handleStopRecording called")
+    window.api.stopRecording()
     setRecordingState(false);
   }
 
 
   const handleDeleteMacro = (id) => {
     if (id == null) return
+
+    console.log("Deleting MacroID: ", id)
+
     window.api.deleteMacro(id)
     setSelectedId(null)
     setSelectedMacro(null)
@@ -48,16 +56,23 @@ export default function MacrosPage({ startRecording, stopRecording, runMacro }) 
 
 
   const handleSelectMacro = (id) => {
-    setSelectedId(id);
+    setSelectedId(id)
     window.api.getMacroEvents(id).then(events => {
-        setSelectedMacro({ ...macros.find(m => m.id === id), events })
-    });
+      setSelectedMacro({ id, events })
+    })
   }
 
 
-  const handleNewMacro = () => {
-    
+  const handleAddMacro = async () => {
+    const macro = await window.api.addMacro()
+    setSelectedId(macro.id)
+    setSelectedMacro({ ...macro, events: [] })
+  }
 
+
+  const handleRunMacro = (id) => {
+    console.log("[MacrosPage.jsx] handleRunMacro called")
+    window.api.runMacro(id)
   }
 
 
@@ -68,6 +83,14 @@ export default function MacrosPage({ startRecording, stopRecording, runMacro }) 
   }, [])
 
 
+  // reload macro events after being recorded
+  useEffect(() => {
+    return window.api.onMacroEventsUpdated(({ id, events }) => {
+      setSelectedMacro(prev => prev && prev.id === id ? { ...prev, events } : prev)
+    })
+  }, [])
+
+
   return (
     <div className="mp-page">
 
@@ -75,13 +98,11 @@ export default function MacrosPage({ startRecording, stopRecording, runMacro }) 
       <aside className="mp-sidebar">
         <div className="mp-sidebar-header">
           <span className="mp-sidebar-title">Macros</span>
-          <button className="mp-sidebar-add" onClick={handleNewMacro}>+</button>
+          <button className="mp-sidebar-add" onClick={handleAddMacro}>+</button>
         </div>
 
       <div className="mp-macro-list">
         {macros.map(macro => ( 
-         
-
           <MacroItem
             key={macro.id}
             macro={macro}
@@ -105,10 +126,10 @@ export default function MacrosPage({ startRecording, stopRecording, runMacro }) 
           </div>
 
           <div className="mp-actions-row">
-            <button className="mp-btn mp-btn-run"    disabled={selectedId == null} onClick={() => runMacro(selectedId)}>Run macro</button>
-            <button className="mp-btn mp-btn-record" disabled={recording}  onClick={handleStartRecording}>Start recording</button>
-            <button className="mp-btn mp-btn-stop"   disabled={!recording} onClick={handleStopRecording}>Stop recording</button>
-            <button className="mp-btn mp-btn-delete" disabled={selectedId == null || recording} onClick={() => handleDeleteMacro(selectedId)}>Delete macro</button>
+            <button className="mp-btn mp-btn-run"    disabled={ selectedId == null }              onClick={() => handleRunMacro(selectedId)}>Run macro</button>
+            <button className="mp-btn mp-btn-record" disabled={ selectedId == null || recording } onClick={() => handleStartRecording(selectedId)}>Start recording</button>
+            <button className="mp-btn mp-btn-stop"   disabled={ !recording }                      onClick={handleStopRecording}>Stop recording</button>
+            <button className="mp-btn mp-btn-delete" disabled={ selectedId == null || recording } onClick={() => handleDeleteMacro(selectedId)}>Delete macro</button>
           </div>
         </div>
 
