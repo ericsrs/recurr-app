@@ -103,7 +103,7 @@ function handleResponse(msg)
 
 
 /***********************************************
- * Save Macro
+ * Macro Indexing
 ***********************************************/
 
 
@@ -139,9 +139,6 @@ function getNextId()
 }
 
 
-// needs to be 2 functions
-// save macro by ID to overwrite existing macros
-// create a macro object with no events to be overwritten
 function saveMacro(events)
 {
     if (!fs.existsSync(macrosDir))

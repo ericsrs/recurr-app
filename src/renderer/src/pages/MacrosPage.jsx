@@ -2,16 +2,18 @@ import { useState, useEffect } from 'react'
 
 // Components
 import MacroItem from '../components/MacroItem.jsx'
+import MacroSettings from '../components/MacroSettings.jsx'
 
 // Styles
 import '../styles/MacrosPage.css'
 
 
-export default function MacrosPage({ startRecording, stopRecording, runMacro }) {
-  const [macros, setMacros]               = useState([])
-  const [selectedId, setSelectedId]       = useState(null)
-  const [selectedMacro, setSelectedMacro] = useState(null)
-  const [recording, setRecordingState]    = useState(false)
+export default function MacrosPage({ }) {
+  const [macros,        setMacros]         = useState([])
+  const [selectedId,    setSelectedId]     = useState(null)
+  const [selectedMacro, setSelectedMacro]  = useState(null)
+  const [recording,     setRecordingState] = useState(false)
+  const [searchQuery,   setSearchQuery]    = useState('')
 
   // Windows vk codes to readable word
   const vkMap = {
@@ -64,6 +66,7 @@ export default function MacrosPage({ startRecording, stopRecording, runMacro }) 
 
 
   const handleAddMacro = async () => {
+    setSearchQuery('')
     const macro = await window.api.addMacro()
     setSelectedId(macro.id)
     setSelectedMacro({ ...macro, events: [] })
@@ -95,6 +98,10 @@ export default function MacrosPage({ startRecording, stopRecording, runMacro }) 
     })
   }, [])
 
+  // for searching & filtering
+  const visibleMacros = macros.filter(m =>
+    m.name.toLowerCase().includes(searchQuery.trim().toLowerCase())
+  )
 
   return (
     <div className="mp-page">
@@ -106,18 +113,41 @@ export default function MacrosPage({ startRecording, stopRecording, runMacro }) 
           <button className="mp-sidebar-add" onClick={handleAddMacro}>+</button>
         </div>
 
-      <div className="mp-macro-list">
-        {macros.map(macro => ( 
-          <MacroItem
-            key={macro.id}
-            macro={macro}
-            selected={macro.id === selectedId}
-            onClick={() => handleSelectMacro(macro.id) }
-            onDelete={(id) => handleDeleteMacro(macro.id) } 
-            onRename={(name) => handleRenameMacro(macro.id, name)}
+        {/* ── Search Bar ── */}
+        <div className="mp-search">
+          <input
+            className="mp-search-input"
+            type="text"
+            placeholder="Search macros…"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={(e) => e.key === 'Escape' && setSearchQuery('')}
           />
-        ))}
+          {searchQuery && (
+            <button className="mp-search-clear" onClick={() => setQuery('')} title="Clear search">✕</button>
+          )}
       </div>
+
+        <div className="mp-macro-list">
+          {macros.length === 0 ? (
+            <div className="mp-list-empty">
+              <span className="mp-list-empty-text">Click + to add your first macro</span>
+              <span className="mp-list-empty-arrow">↑</span>
+            </div>
+          ) : visibleMacros.length === 0 ? (
+            <div className="mp-list-none">No macros match "{searchQuery}"</div>
+          ) : (
+            visibleMacros.map(macro => (
+              <MacroItem
+                key={macro.id}
+                macro={macro}
+                selected={macro.id === selectedId}
+                onClick={() => handleSelectMacro(macro.id)}
+                onRename={(name) => handleRenameMacro(macro.id, name)}
+              />
+            ))
+          )}
+        </div>
 
         <div className="mp-sidebar-footer">
           <span className="mp-status-dot" />
@@ -139,15 +169,27 @@ export default function MacrosPage({ startRecording, stopRecording, runMacro }) 
           </div>
         </div>
 
+        {selectedId != null && <MacroSettings key={selectedId} />}
+
         <div className="mp-content">
-          {selectedMacro?.events?.map((event, i) => (
-            <div key={i} className={`mp-event-row ${event.keyDown ? 'mp-event-down' : 'mp-event-up'}`}>
-              <span className="mp-event-index">{i + 1}</span>
-              <span className="mp-event-key">{keyName(event.vkCode)}</span>
-              <span className="mp-event-type">{event.keyDown ? '↓ down' : '↑ up'}</span>
-              <span className="mp-event-time">{event.timestamp}ms</span>
+          {selectedMacro == null ? (
+            <div className="mp-empty">Select a macro, or click + to create one.</div>
+          ) : selectedMacro.events?.length === 0 ? (
+            <div className="mp-empty">
+              {recording
+                ? 'Recording... press keys, then click Stop recording.'
+                : 'No events yet. Click Start recording to record your macro!'}
             </div>
-          ))}
+          ) : (
+            selectedMacro.events.map((event, i) => (
+              <div key={i} className={`mp-event-row ${event.keyDown ? 'mp-event-down' : 'mp-event-up'}`}>
+                <span className="mp-event-index">{i + 1}</span>
+                <span className="mp-event-key">{keyName(event.vkCode)}</span>
+                <span className="mp-event-type">{event.keyDown ? '↓ down' : '↑ up'}</span>
+                <span className="mp-event-time">{event.timestamp}ms</span>
+              </div>
+            ))
+          )}
         </div>
       </div>
     </div>

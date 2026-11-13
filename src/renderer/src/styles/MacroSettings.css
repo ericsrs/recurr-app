@@ -1,0 +1,169 @@
+.ms-panel {
+  border-bottom: 1px solid #1e1e1e;
+  background: #131313;
+  flex-shrink: 0;
+}
+
+/* ── Header (fold toggle) ─────────────────────────────── */
+
+.ms-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 18px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+}
+
+.ms-header:hover .ms-title { color: #ccc; }
+
+.ms-chevron {
+  font-size: 8px;
+  color: #555;
+  transition: transform 0.15s ease;
+}
+.ms-chevron-open { transform: rotate(90deg); }
+
+.ms-title {
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #666;
+  transition: color 0.15s ease;
+}
+
+.ms-summary {
+  margin-left: 8px;
+  font-size: 11px;
+  color: #444;
+}
+
+/* ── Fold animation ───────────────────────────────────── */
+
+.ms-body {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.2s ease;
+}
+.ms-body-open { grid-template-rows: 1fr; }
+
+.ms-body-inner {
+  overflow: hidden;
+  min-height: 0;
+}
+
+.ms-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px 28px;
+  padding: 4px 18px 14px;
+}
+
+/* ── Fields ───────────────────────────────────────────── */
+
+.ms-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ms-label {
+  font-size: 11px;
+  color: #888;
+}
+
+.ms-unit {
+  color: #444;
+  margin-left: 4px;
+}
+
+.ms-number-select {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ms-select,
+.ms-input,
+.ms-keybind-btn {
+  background: #1a1a1a;
+  border: 1px solid #2a2a2a;
+  border-radius: 5px;
+  color: #ccc;
+  font-size: 11px;
+  height: 24px;
+  padding: 0 8px;
+  box-sizing: border-box;
+  outline: none;
+  transition: border-color 0.15s ease;
+  flex: 1;
+  width: 40px;
+}
+
+.ms-select:hover,
+.ms-input:hover,
+.ms-keybind-btn:hover { border-color: #3a3a3a; }
+
+.ms-select:focus,
+.ms-input:focus,
+.ms-keybind-btn:focus-visible { border-color: #639922; }
+
+.ms-select {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 68px;
+  padding-right: 22px;
+  cursor: pointer;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='8' height='5' viewBox='0 0 8 5'><path d='M0 0l4 5 4-5z' fill='%23666'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+}
+
+.ms-select option {
+  background: #1a1a1a;
+  color: #ccc;
+}
+
+.ms-input::-webkit-outer-spin-button,
+.ms-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.ms-input { -moz-appearance: textfield; }
+
+/* ── Keybind ──────────────────────────────────────────── */
+
+.ms-keybind {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ms-keybind-btn {
+  width: 110px;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+
+.ms-keybind-listening {
+  border-color: #639922;
+  color: #639922;
+  background: #1a2e1a;
+}
+
+.ms-clear {
+  background: none;
+  border: none;
+  color: #555;
+  font-size: 11px;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 4px;
+}
+.ms-clear:hover {
+  color: #e74c3c;
+  background: rgba(231, 76, 60, 0.12);
+}

@@ -1,8 +1,12 @@
 
+:root {
+  --font-ui: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
 .mp-page {
   display: flex;
   height: 100vh;
-  font-family: monospace;
+  /* font-family: monospace; */
   background: #0f0f0f;
   color: #e0e0e0;
   overflow: hidden;
@@ -103,6 +107,79 @@
   filter: none;
 }
 
+.mp-list-empty {
+  display: flex;
+  flex-direction: row;      /* text left, arrow right */
+  align-items: center;
+  padding: 10px 0;          /* no horizontal padding, so nothing fights the arrow's position */
+  font-size: 11px;
+  color: #555;
+}
+
+.mp-list-empty-text {
+  flex: 1;
+  text-align: center;       /* centered in the space left of the arrow */
+}
+
+.mp-list-empty-arrow {
+  flex: none;
+  width: 20px;              /* same width as the + button */
+  margin-right: 8px;        /* tune this to slide the arrow left or right */
+  text-align: center;
+  font-size: 20px;
+  line-height: 1;
+  color: #639922;
+}
+
+/* ── Search bar ───────────────────────────────────────── */
+
+.mp-search {
+  position: relative;
+  padding: 8px 8px 0;
+}
+
+.mp-search-input {
+  width: 100%;
+  height: 26px;
+  padding: 0 24px 0 9px;
+  background: #1a1a1a;
+  border: 1px solid #2a2a2a;
+  border-radius: 5px;
+  color: #ccc;
+  font-size: 11px;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.mp-search-input::placeholder { color: #444; }
+.mp-search-input:hover        { border-color: #3a3a3a; }
+.mp-search-input:focus        { border-color: #639922; }
+
+.mp-search-clear {
+  position: absolute;
+  right: 14px;
+  top: 8px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  background: none;
+  border: none;
+  color: #555;
+  font-size: 10px;
+  cursor: pointer;
+  padding: 0 4px;
+}
+.mp-search-clear:hover { color: #e74c3c; }
+
+.mp-list-none {
+  padding: 14px 8px;
+  text-align: center;
+  font-size: 11px;
+  color: #555;
+  word-break: break-word;
+}
+
+
 /* ── Main ─────────────────────────────────────────────── */
 
 .mp-main {
@@ -164,7 +241,7 @@
   padding: 6px 14px;
   border-radius: 6px;
   font-size: 11px;
-  font-family: monospace;
+  /* font-family: monospace; */
   cursor: pointer;
   border: 1px solid;
   letter-spacing: 0.02em;
@@ -201,6 +278,15 @@
   overflow-y: auto;
 }
 
+.mp-empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: #555;
+}
+
 .mp-event-row {
   display: flex;
   align-items: center;
@@ -213,7 +299,7 @@
 }
 
 .mp-event-index {
-  color: #333;
+  color: #555;
   width: 24px;
   flex-shrink: 0;
 }
@@ -266,7 +352,7 @@
   border-radius: 5px;
   padding: 3px 10px;
   font-size: 12px;
-  font-family: monospace;
+  /* font-family: monospace; */
   color: #bbb;
 }
 
@@ -314,7 +400,7 @@
   font-size: 10px;
   padding: 2px 7px;
   border-radius: 4px;
-  font-family: monospace;
+  /* font-family: monospace; */
 }
 
 .mp-type-keypress { background: #0e2e22; color: #5dcaa5; }
