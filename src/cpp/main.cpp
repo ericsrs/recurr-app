@@ -11,6 +11,9 @@
 #define WM_STOP_RECORDING  (WM_USER + 2)
 #define WM_EXIT            (WM_USER + 3)
 
+// build command
+// g++ -std=c++17 -D_WIN32_WINNT=0x0601 -O2 -Iheaders main.cpp source/player.cpp source/recorder.cpp -o macro_engine.exe -static -static-libgcc -static-libstdc++
+
 using json = nlohmann::json;
 
 
@@ -70,6 +73,8 @@ void stdinLoop(DWORD mainThreadId)
 int main()
 {
     std::cerr << "macro_engine starting...\n";
+
+    SetProcessDPIAware();
 
     DWORD mainThreadId = GetCurrentThreadId(); // grab before spawning thread
 

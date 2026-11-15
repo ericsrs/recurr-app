@@ -35,8 +35,16 @@ private:
     Recorder& operator=(const Recorder&) = delete;
 
     static LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam);
+    static LRESULT CALLBACK MouseProc(int nCode, WPARAM wParam, LPARAM lParam);
+
+    void push(DWORD vk, bool down, DWORD time, LONG x = 0, LONG y = 0);
+
+    int buttonsHeld = 0; // # of mouse buttons held simultaneously
 
     DWORD startTime = 0;
-    HHOOK hook      = NULL;
+    DWORD lastMoveTime = 0;
+
+    HHOOK keyHook   = NULL;
+    HHOOK mouseHook = NULL;
     std::vector<KeyEvent> recordedKeyEvents;
 };

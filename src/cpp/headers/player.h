@@ -37,6 +37,8 @@ private:
 
     void releaseModifiers();
     void sendKey(DWORD vkCode, bool keyDown);
+    void sendMouse(const KeyEvent& e);   
+    static bool isMouseEvent(DWORD vkCode);  
 
     std::vector<KeyEvent> events;
 };

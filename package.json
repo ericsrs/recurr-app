@@ -15,7 +15,8 @@
     "build:unpack": "npm run build && electron-builder --dir",
     "build:win": "npm run build && electron-builder --win",
     "build:mac": "npm run build && electron-builder --mac",
-    "build:linux": "npm run build && electron-builder --linux"
+    "build:linux": "npm run build && electron-builder --linux",
+    "build:cpp": "g++ -std=c++17 -D_WIN32_WINNT=0x0601 -O2 -Iheaders src/cpp/main.cpp src/cpp/source/player.cpp src/cpp/source/recorder.cpp -o macro_engine.exe -static -static-libgcc -static-libstdc++"
   },
   "build": {
     "appId": "com.recurr.app",

@@ -17,6 +17,7 @@ export default function MacrosPage({ }) {
 
   // Windows vk codes to readable word
   const vkMap = {
+    0:'Mouse Movement', 1:'Left click', 2:'Right click', 4:'Middle click', 
     8:'Backspace', 9:'Tab', 13:'Enter', 16:'Shift', 17:'Ctrl', 18:'Alt',
     20:'Caps lock', 27:'Esc', 32:'Space', 37:'←', 38:'↑', 39:'→', 40:'↓',
     48:'0',49:'1',50:'2',51:'3',52:'4',53:'5',54:'6',55:'7',56:'8',57:'9',
@@ -59,6 +60,7 @@ export default function MacrosPage({ }) {
 
   const handleSelectMacro = (id) => {
     if (recording) return
+    if (id === selectedId) return
 
     setSelectedId(id)
     window.api.getMacroEvents(id).then(events => {
