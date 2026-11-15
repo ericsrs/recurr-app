@@ -7,7 +7,9 @@ import * as fs                                from 'fs'
 /*  FILE PATHS  */
 const userDataPath = app.getPath('userData');
 
-const macroExePath = join(process.cwd(), 'src', 'cpp', 'macro_engine.exe');
+const macroExePath = app.isPackaged
+  ? join(process.resourcesPath, 'cpp', 'macro_engine.exe')
+  : join(app.getAppPath(), 'src', 'cpp', 'macro_engine.exe');
 const macrosDir    = join(userDataPath, 'Macros'); // macros folder path
 const indexPath    = join(macrosDir, 'index.json');
 
@@ -22,12 +24,22 @@ let mainWindow = null;
 let recordingId = null;
 
 
+// log information
+const logPath = join(app.getPath('userData'), 'recurr.log');
+function log(...args) {
+    const line = `[${new Date().toISOString()}] ${args.join(' ')}\n`;
+    console.log(line.trim());
+    try { fs.appendFileSync(logPath, line); } catch {}
+}
+
+
 /***********************************************
  * Hardware Process
 ***********************************************/
 
 function startHardwareProcess()
 {
+    log('Starting engine at', macroExePath, 'exists:', fs.existsSync(macroExePath));
     hwProcess = spawn(macroExePath);
 
     hwProcess.stdout.on('data', (chunk) => {
@@ -51,6 +63,7 @@ function startHardwareProcess()
     });
 
     hwProcess.on('error', (error) => {
+        log('Failed to start hardware process:', error.message);
         console.error('Failed to start hardware process:', error);
     });
 
@@ -198,6 +211,8 @@ function createWindow() {
     shell.openExternal(details.url)
     return { action: 'deny' }
   })
+
+  //mainWindow.webContents.openDevTools()
 
   // HMR for renderer base on electron-vite cli.
   // Load the remote URL for development or the local html file for production.

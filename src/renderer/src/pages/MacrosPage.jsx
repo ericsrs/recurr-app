@@ -128,7 +128,7 @@ export default function MacrosPage({ }) {
           {searchQuery && (
             <button className="mp-search-clear" onClick={() => setSearchQuery('')} title="Clear search">✕</button>
           )}
-      </div>
+        </div>
 
         <div className="mp-macro-list">
           {macros.length === 0 ? (

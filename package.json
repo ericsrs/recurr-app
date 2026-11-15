@@ -19,8 +19,15 @@
   },
   "build": {
     "appId": "com.recurr.app",
+    "extraResources": [
+      {
+        "from": "src/cpp",
+        "to": "cpp",
+        "filter": ["macro_engine.exe", "*.dll"]
+      }
+    ],
     "win": {
-      "icon": "resources/Recurr-icon.ico"
+      "icon": "resources/Recurr-icon.png"
     },
     "mac": {
       "icon": "resources/Recurr-icon.icns"

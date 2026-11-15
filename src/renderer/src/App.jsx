@@ -1,20 +1,15 @@
-import { BrowserRouter, Route, Routes } from 'react-router-dom'
-
+import { HashRouter, Route, Routes } from 'react-router-dom'
 
 import MacrosPage from "./pages/MacrosPage"
 import './styles/base.css'
 
-
 function App() {
-
   return (
-    <BrowserRouter>
+    <HashRouter>
       <Routes>
-        <Route path="/" element={
-          <MacrosPage/>
-        } />
+        <Route path="/" element={<MacrosPage />} />
       </Routes>
-    </BrowserRouter>
+    </HashRouter>
   )
 }
 

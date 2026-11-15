@@ -1,6 +1,6 @@
 .ms-panel {
-  border-bottom: 1px solid #1e1e1e;
-  background: #131313;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-background-soft);
   flex-shrink: 0;
 }
 
@@ -18,11 +18,11 @@
   text-align: left;
 }
 
-.ms-header:hover .ms-title { color: #ccc; }
+.ms-header:hover .ms-title { color: var(--ev-c-text-1); }
 
 .ms-chevron {
   font-size: 8px;
-  color: #555;
+  color: var(--ev-c-text-3);
   transition: transform 0.15s ease;
 }
 .ms-chevron-open { transform: rotate(90deg); }
@@ -31,14 +31,14 @@
   font-size: 10px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: #666;
+  color: var(--ev-c-text-2);
   transition: color 0.15s ease;
 }
 
 .ms-summary {
   margin-left: 8px;
   font-size: 11px;
-  color: #444;
+  color: var(--ev-c-text-3);
 }
 
 /* ── Fold animation ───────────────────────────────────── */
@@ -72,11 +72,11 @@
 
 .ms-label {
   font-size: 11px;
-  color: #888;
+  color: var(--ev-c-text-2);
 }
 
 .ms-unit {
-  color: #444;
+  color: var(--ev-c-text-3);
   margin-left: 4px;
 }
 
@@ -89,10 +89,10 @@
 .ms-select,
 .ms-input,
 .ms-keybind-btn {
-  background: #1a1a1a;
-  border: 1px solid #2a2a2a;
+  background: var(--color-background);
+  border: 1px solid var(--color-border-strong);
   border-radius: 5px;
-  color: #ccc;
+  color: var(--ev-c-text-1);
   font-size: 11px;
   height: 24px;
   padding: 0 8px;
@@ -105,11 +105,11 @@
 
 .ms-select:hover,
 .ms-input:hover,
-.ms-keybind-btn:hover { border-color: #3a3a3a; }
+.ms-keybind-btn:hover { border-color: var(--ev-c-gray-1); }
 
 .ms-select:focus,
 .ms-input:focus,
-.ms-keybind-btn:focus-visible { border-color: #639922; }
+.ms-keybind-btn:focus-visible { border-color: var(--accent-green); }
 
 .ms-select {
   appearance: none;
@@ -117,14 +117,15 @@
   width: 68px;
   padding-right: 22px;
   cursor: pointer;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='8' height='5' viewBox='0 0 8 5'><path d='M0 0l4 5 4-5z' fill='%23666'/></svg>");
+  /* fill matches --ev-c-text-3 (#a9aebb); CSS variables don't work inside data URIs */
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='8' height='5' viewBox='0 0 8 5'><path d='M0 0l4 5 4-5z' fill='%23a9aebb'/></svg>");
   background-repeat: no-repeat;
   background-position: right 8px center;
 }
 
 .ms-select option {
-  background: #1a1a1a;
-  color: #ccc;
+  background: var(--color-background);
+  color: var(--ev-c-text-1);
 }
 
 .ms-input::-webkit-outer-spin-button,
@@ -149,21 +150,21 @@
 }
 
 .ms-keybind-listening {
-  border-color: #639922;
-  color: #639922;
-  background: #1a2e1a;
+  border-color: var(--accent-green);
+  color: var(--accent-green);
+  background: var(--accent-green-bg);
 }
 
 .ms-clear {
   background: none;
   border: none;
-  color: #555;
+  color: var(--ev-c-text-3);
   font-size: 11px;
   cursor: pointer;
   padding: 4px 6px;
   border-radius: 4px;
 }
 .ms-clear:hover {
-  color: #e74c3c;
-  background: rgba(231, 76, 60, 0.12);
+  color: var(--accent-danger);
+  background: color-mix(in srgb, var(--accent-danger) 15%, transparent);
 }

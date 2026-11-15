@@ -61,7 +61,11 @@ function MacroItem({ macro, selected, onClick, onRename }) {
                     }}
                 />
             ) : (
-                <span className="mp-macro-item-name" onDoubleClick={startRename}>
+                <span 
+                    className="mp-macro-item-name" 
+                    title="Double click to rename"
+                    onDoubleClick={startRename}
+                >
                     {macro.name}
                 </span>
             )}

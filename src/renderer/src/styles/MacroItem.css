@@ -15,35 +15,35 @@
 }
 
 .mp-macro-item:hover {
-  background: #1c1c1c;
-  border-color: #2a2a2a;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+  background: var(--color-background-soft);
+  border-color: var(--color-border);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
 }
 
 .mp-macro-item:active {
-  background: #161616;
-  border-color: #333;
+  background: var(--color-background-deep);
+  border-color: var(--color-border-strong);
   transform: scale(0.98);
   box-shadow: none;
 }
 
 .mp-macro-item:focus-visible {
-  outline: 1px solid #444;
+  outline: 1px solid var(--ev-c-gray-1);
   outline-offset: 1px;
 }
 
 .mp-macro-item.mp-macro-item-active,
 .mp-macro-item.mp-macro-item-active:hover {
-  background: #1a2a1a;
-  border-color: #2a4a2a;
-  box-shadow: inset 2px 0 0 #639922, 0 1px 4px rgba(0, 0, 0, 0.4);
+  background: var(--accent-green-bg);
+  border-color: var(--accent-green-border);
+  box-shadow: inset 2px 0 0 var(--accent-green), 0 1px 4px rgba(0, 0, 0, 0.35);
 }
 
-.mp-macro-item-active .mp-macro-item-id   { color: #639922; }
-.mp-macro-item-active .mp-macro-item-name { color: #fff; font-weight: 600; }
+.mp-macro-item-active .mp-macro-item-id   { color: var(--ev-c-text-3); }
+.mp-macro-item-active .mp-macro-item-name { color: var(--ev-c-white); font-weight: 600; }
 
 .mp-macro-item-inactive {
-  opacity: 0.45;
+  opacity: 0.6;
 }
 
 .mp-macro-item-text {
@@ -55,27 +55,31 @@
 
 .mp-macro-item-id {
   font-size: 10px;
-  color: #444;
+  color: var(--ev-c-text-3);
   flex-shrink: 0;
 }
 
 .mp-macro-item-name {
   font-size: 12px;
-  color: #ccc;
+  color: var(--ev-c-text-2);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   flex: 1;
+  cursor: text;
+  border-bottom: 1px dashed transparent;
+  transition: border-color 0.15s ease, color 0.15s ease;
 }
 
-.mp-macro-item:hover .mp-macro-item-id,
+
 .mp-macro-item:hover .mp-macro-item-name {
-  color: #ddd;
+  color: var(--ev-c-text-1);
+  border-bottom-color: var(--ev-c-gray-1);
 }
 
 .mp-macro-item-sub {
   font-size: 10px;
-  color: #444;
+  color: var(--ev-c-text-3);
   margin-top: 1px;
 }
 
@@ -83,39 +87,46 @@
   margin-left: auto;
   background: none;
   border: none;
-  color: #e6b800;
+  color: var(--accent-gold);
   font-size: 18px;
   line-height: 1;
   cursor: pointer;
   padding: 2px 4px;
   border-radius: 4px;
   flex-shrink: 0;
-  opacity: 0;                 
+  opacity: 0;
   transition: opacity 0.15s ease, transform 0.1s ease, background 0.15s ease;
 }
 
 .mp-macro-item:hover .mp-macro-item-star,
 .mp-macro-item:focus-visible .mp-macro-item-star {
-  opacity: 0.5;
+  opacity: 0.6;
 }
 
 .mp-macro-item-star:hover {
   opacity: 1 !important;
   transform: scale(1.15);
-  background: rgba(230, 184, 0, 0.12);
+  background: color-mix(in srgb, var(--accent-gold) 15%, transparent);
 }
 
 .mp-macro-item-star-on {
-  opacity: 1;                      
+  opacity: 1;
 }
 
 .mp-rename-input {
-  background: transparent;
-  border: none;
-  border-bottom: 1px solid #444;
-  color: #ccc;
+  background: var(--color-background-deep);
+  border: 1px solid var(--accent-green);
+  border-radius: 4px;
+  color: var(--ev-c-text-1);
   font-size: 12px;
   width: 100%;
   outline: none;
-  padding: 0;
+  padding: 2px 6px;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-green) 25%, transparent);
+  cursor: text;
+}
+
+.mp-rename-input::selection {
+  background: var(--accent-green-border);
+  color: var(--ev-c-white);
 }
